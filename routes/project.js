@@ -1,8 +1,8 @@
 import { responseClient } from '../util/util';
-import TimeAxis from '../models/timeAxis';
+import Project from '../models/project';
 
-//获取全部时间轴内容
-exports.getTimeAxisList = (req, res) => {
+//获取全部项目内容
+exports.getProjectList = (req, res) => {
   let keyword = req.query.keyword || null;
   let state = req.query.state || '';
   let pageNum = parseInt(req.query.pageNum) || 1;
@@ -35,7 +35,7 @@ exports.getTimeAxisList = (req, res) => {
     count: 0,
     list: [],
   };
-  TimeAxis.countDocuments({}, (err, count) => {
+  Project.countDocuments({}, (err, count) => {
     if (err) {
       console.error('Error:' + err);
     } else {
@@ -43,7 +43,9 @@ exports.getTimeAxisList = (req, res) => {
       let fields = {
         title: 1,
         content: 1,
-        state: 1,
+        img: 1,
+        url: 1,
+        // state: 1,
         start_time: 1,
         end_time: 1,
         // update_time: 1,
@@ -53,7 +55,7 @@ exports.getTimeAxisList = (req, res) => {
         limit: pageSize,
         sort: { end_time: -1 },
       };
-      TimeAxis.find(conditions, fields, options, (error, result) => {
+      Project.find(conditions, fields, options, (error, result) => {
         if (err) {
           console.error('Error:' + error);
           // throw error;
@@ -66,21 +68,23 @@ exports.getTimeAxisList = (req, res) => {
   });
 };
 
-exports.addTimeAxis = (req, res) => {
-  let { title, state, content, start_time, end_time } = req.body;
-  TimeAxis.findOne({
+exports.addProject = (req, res) => {
+  let { title, state, content, img, url, start_time, end_time } = req.body;
+  Project.findOne({
     title,
   })
     .then(result => {
       if (!result) {
-        let timeAxis = new TimeAxis({
+        let project = new Project({
           title,
           state,
           content,
+          img,
+          url,
           start_time,
           end_time,
         });
-        timeAxis
+        project
           .save()
           .then(data => {
             responseClient(res, 200, 0, '操作成功！', data);
@@ -90,7 +94,7 @@ exports.addTimeAxis = (req, res) => {
             // throw err;
           });
       } else {
-        responseClient(res, 200, 1, '该时间轴内容已存在');
+        responseClient(res, 200, 1, '该项目内容已存在');
       }
     })
     .catch(errro => {
@@ -99,15 +103,17 @@ exports.addTimeAxis = (req, res) => {
     });
 };
 
-exports.updateTimeAxis = (req, res) => {
-  let { id, title, state, content, start_time, end_time } = req.body;
+exports.updateProject = (req, res) => {
+  let { id, title, state, content,img, url, start_time, end_time } = req.body;
 
-  TimeAxis.updateOne(
+  Project.updateOne(
     { _id: id },
     {
       title,
       state: Number(state),
       content,
+      img,
+      url,
       start_time,
       end_time,
       update_time: new Date(),
@@ -123,15 +129,15 @@ exports.updateTimeAxis = (req, res) => {
     });
 };
 
-exports.delTimeAxis = (req, res) => {
+exports.delProject = (req, res) => {
   let { id } = req.body;
-  TimeAxis.deleteMany({ _id: id })
+  Project.deleteMany({ _id: id })
     .then(result => {
       // console.log('result :', result)
       if (result.n === 1) {
         responseClient(res, 200, 0, '操作成功!');
       } else {
-        responseClient(res, 200, 1, '时间轴内容不存在');
+        responseClient(res, 200, 1, '项目内容不存在');
       }
     })
     .catch(err => {
@@ -141,9 +147,9 @@ exports.delTimeAxis = (req, res) => {
 };
 
 // 详情
-exports.getTimeAxisDetail = (req, res) => {
+exports.getProjectDetail = (req, res) => {
   let { id } = req.body;
-  TimeAxis.findOne({ _id: id })
+  Project.findOne({ _id: id })
     .then(data => {
       responseClient(res, 200, 0, '操作成功！', data);
     })
